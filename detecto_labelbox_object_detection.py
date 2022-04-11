@@ -219,7 +219,7 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def assess_model_performance(model_path, class_list, csv_outfile):
+def assess_model_performance(model_path, image_set, class_list, csv_outfile, file_ext='.png'):
 
 
     detect_dict = {}
@@ -228,7 +228,7 @@ def assess_model_performance(model_path, class_list, csv_outfile):
     img_list = []
     model = core.Model.load(model_path, class_list)
 
-    for img in glob.glob('./selected_images/*.png'):
+    for img in glob.glob(os.path.join(image_set, ''.join(['*', file_ext]))):
         
         try:
             cnt = 0
@@ -327,9 +327,10 @@ def main():
         train_model(data_loaded)
 
     if data_loaded['performance_parameters']['assess_performance']:
-        assess_model_performance(data_loaded['outputs']['model_outfile'], 
-                                 data_loaded['training_parameters']['classes'],
-                                 data_loaded['performance_parameters']['csv_outfile'])
+        assess_model_performance(model_path = data_loaded['outputs']['model_outfile'],
+                                 image_set = data_loaded['performance_parameters']['test_directory'],
+                                 class_list = data_loaded['training_parameters']['classes'],
+                                 csv_outfile = data_loaded['performance_parameters']['csv_outfile'])
 
 
 # --------------------------------------------------
