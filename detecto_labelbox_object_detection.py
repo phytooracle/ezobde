@@ -199,6 +199,106 @@ def train_model(data_loaded):
 
 
 # --------------------------------------------------
+def bb_intersection_over_union(boxA, boxB):
+    # determine the (x, y)-coordinates of the intersection rectangle
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
+    # compute the area of intersection rectangle
+    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+    # compute the area of both the prediction and ground-truth
+    # rectangles
+    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the interesection area
+    iou = interArea / float(boxAArea + boxBArea - interArea)
+    # return the intersection over union value
+    return iou
+
+
+def assess_model_performance(model_path, class_list, csv_outfile):
+
+
+    detect_dict = {}
+    iou_dict = {}
+    gt_num = []
+    img_list = []
+    model = core.Model.load(model_path, class_list)
+
+    for img in glob.glob('./selected_images/*.png'):
+        
+        try:
+            cnt = 0
+            image = utils.read_image(img)
+            predictions = model.predict(image)
+            labels, boxes, scores = predictions
+            a_img = cv2.imread(img)
+            a_img = cv2.cvtColor(a_img, cv2.COLOR_BGR2RGB)
+            copy = a_img.copy()
+
+            xml = img.replace('.png', '.xml')
+            mydoc = minidom.parse(xml)
+            items = mydoc.getElementsByTagName('object')
+            tree = ET.parse(xml)
+            root = tree.getroot()
+            gt = len([roi for roi in root.iter('object')])
+            gt_num.append(gt)
+            img_list.append(img)
+
+            iou_list = []
+            for i, box in enumerate(boxes):
+
+                min_x, min_y, max_x, max_y = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+                ml = [min_y, min_x, max_y, max_x]
+                start_point = (min_x, max_y)
+                end_point = (max_x, min_y)
+                color = (255, 0, 0) 
+                thickness = 6
+                cv2.rectangle(a_img, start_point, end_point, color, thickness)
+
+                result_list = []
+                for roi in root.iter('object'):
+                    file_name = root.find('filename').text
+                    ymin, xmin, ymax, xmax = None, None, None, None 
+
+                    ymin = int(roi.find("bndbox/ymin").text)
+                    xmin = int(roi.find("bndbox/xmin").text)
+                    ymax = int(roi.find("bndbox/ymax").text)
+                    xmax = int(roi.find("bndbox/xmax").text)
+                    gt = [ymin, xmin, ymax, xmax]
+                    start_point = (xmin, ymax)
+                    end_point = (xmax, ymin)
+                    color = (0, 0, 255) 
+                    thickness = 6
+                    cv2.rectangle(a_img, start_point, end_point, color, thickness)
+                    
+                    iou = bb_intersection_over_union(gt, ml)
+                    result_list.append(iou)
+
+                final_iou = max(result_list)
+                iou_list.append(final_iou)
+        
+            iou_dict[file_name] = {
+                'iou': iou_list
+            }
+            
+        except:
+            pass
+
+    df = pd.DataFrame.from_dict(iou_dict, orient='index').explode('iou')
+    df['iou'] = df['iou'].astype(float)
+    # df = df.groupby(by=df.index).mean()
+    df = df.reset_index()
+    df['date'] = df['index'].str.split('_', expand=True)[0]
+    df = df.sort_values('date')
+    df.to_csv(csv_outfile, index=False)
+
+    return df
+
+# --------------------------------------------------
 def main():
     """Make a jazz noise here"""
 
@@ -225,6 +325,11 @@ def main():
     # Train model 
     if data_loaded['training_parameters']['train_model']:
         train_model(data_loaded)
+
+    if data_loaded['performance_parameters']['assess_performance']:
+        assess_model_performance(data_loaded['outputs']['model_outfile'], 
+                                 data_loaded['training_parameters']['classes'],
+                                 data_loaded['performance_parameters']['csv_outfile'])
 
 
 # --------------------------------------------------
