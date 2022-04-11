@@ -324,7 +324,10 @@ def main():
 
     # Train model 
     if data_loaded['training_parameters']['train_model']:
-        train_model(data_loaded)
+        if not os.path.isfile(data_loaded['outputs']['model_outfile']):
+            train_model(data_loaded)
+        else:
+            print('Previously trained model found, loading it.')
 
     if data_loaded['performance_parameters']['assess_performance']:
         assess_model_performance(model_path = data_loaded['outputs']['model_outfile'],
