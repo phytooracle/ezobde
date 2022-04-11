@@ -275,6 +275,8 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, fil
                     color = (0, 0, 255) 
                     thickness = 6
                     cv2.rectangle(a_img, start_point, end_point, color, thickness)
+
+                    cv2.imwrite(img.replace('.png', '_prediction.png'), a_img)
                     
                     iou = bb_intersection_over_union(gt, ml)
                     result_list.append(iou)
