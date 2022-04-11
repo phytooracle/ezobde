@@ -220,7 +220,7 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def assess_model_performance(model_path, image_set, class_list, csv_outfile, file_ext='.png'):
+def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, file_ext='.png'):
 
 
     detect_dict = {}
@@ -295,8 +295,11 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, fil
     df['iou'] = df['iou'].astype(float)
     # df = df.groupby(by=df.index).mean()
     df = df.reset_index()
-    df['date'] = df['index'].str.split('_', expand=True)[0]
-    df = df.sort_values('date')
+
+    if date_string:
+        df['date'] = df['index'].str.split('_', expand=True)[0]
+        df = df.sort_values('date')
+
     df.to_csv(csv_outfile, index=False)
 
     return df
@@ -334,6 +337,8 @@ def main():
 
     if data_loaded['performance_parameters']['assess_performance']:
         assess_model_performance(model_path = data_loaded['outputs']['model_outfile'],
+                                 date_string = data_loaded['data']['date_string'],
+                                 save_predictions = data_loaded['performance_parameters']['save_predictions'],
                                  image_set = data_loaded['performance_parameters']['test_directory'],
                                  class_list = data_loaded['training_parameters']['classes'],
                                  csv_outfile = data_loaded['performance_parameters']['csv_outfile'])
