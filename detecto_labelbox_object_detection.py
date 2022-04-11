@@ -229,6 +229,11 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
     img_list = []
     model = core.Model.load(model_path, class_list)
 
+    if save_predictions:
+        
+        if not os.path.isdir(save_predictions):
+            os.makedirs(save_predictions)
+
     for img in glob.glob(os.path.join(image_set, ''.join(['*', file_ext]))):
         
         try:
