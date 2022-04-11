@@ -28,6 +28,7 @@ from xml.dom import minidom
 import yaml
 from torchvision import transforms
 from detecto.utils import normalize_transform
+import xml.etree.ElementTree as ET
 
 
 # --------------------------------------------------
