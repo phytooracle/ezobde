@@ -230,7 +230,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
     model = core.Model.load(model_path, class_list)
 
     if save_predictions:
-        
+
         if not os.path.isdir(save_predictions):
             os.makedirs(save_predictions)
 
@@ -280,8 +280,10 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
                     color = (0, 0, 255) 
                     thickness = 6
                     cv2.rectangle(a_img, start_point, end_point, color, thickness)
-                    if save_predictions:
 
+                    if save_predictions:
+                        print(f'>>> Saving predictions for {img}')
+                        print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
                         cv2.imwrite(os.path.join(save_predictions, img.replace('.png', '_prediction.png')), a_img)
                     
                     iou = bb_intersection_over_union(gt, ml)
@@ -342,6 +344,7 @@ def main():
             print('Previously trained model found, loading it.')
 
     if data_loaded['performance_parameters']['assess_performance']:
+        
         assess_model_performance(model_path = data_loaded['outputs']['model_outfile'],
                                  date_string = data_loaded['data']['date_string'],
                                  save_predictions = data_loaded['performance_parameters']['save_predictions'],
