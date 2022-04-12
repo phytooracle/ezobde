@@ -110,15 +110,15 @@ def split_data(labels):
 
 
 # --------------------------------------------------
-def create_labels(data, data_loaded):
+def create_labels(data, data_loaded, file_extension):
   
     args = get_args()
     print('>>> Creating XML label files.')
     for i in range(len(data)):
         try:
-            file_name = data[i]['External ID'].replace('.png', '.txt')
+            file_name = data[i]['External ID'].replace(file_extension, '.txt')
             name = data[i]['External ID']
-            out_name = name.replace('.png', '.xml')
+            out_name = name.replace(file_extension, '.xml')
 
             if name in test:
                 file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir'])
@@ -220,7 +220,7 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, file_ext='.png'):
+def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, file_extension):
 
     detect_dict = {}
     iou_dict = {}
@@ -233,7 +233,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
         if not os.path.isdir(save_predictions):
             os.makedirs(save_predictions)
 
-    for img in glob.glob(os.path.join(image_set, ''.join(['*', file_ext]))):
+    for img in glob.glob(os.path.join(image_set, ''.join(['*', file_extension]))):
         
         try:
             cnt = 0
@@ -244,7 +244,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
             a_img = cv2.cvtColor(a_img, cv2.COLOR_BGR2RGB)
             copy = a_img.copy()
 
-            xml = img.replace('.png', '.xml')
+            xml = img.replace(file_extension, '.xml')
             mydoc = minidom.parse(xml)
             items = mydoc.getElementsByTagName('object')
             tree = ET.parse(xml)
@@ -288,8 +288,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
 
             if save_predictions:
                 print(f'>>> Saving predictions for {img}')
-                # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
-                cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
+                cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace(file_extension, f'_prediction{file_extension}'))), a_img)
 
             iou_dict[file_name] = {
                 'iou': iou_list
@@ -336,7 +335,7 @@ def main():
         download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir']), test, img_dict)
     
         # Create labels
-        create_labels(labels, data_loaded)
+        create_labels(labels, data_loaded, file_extension=data_loaded['date']['file_extension'])
 
     # Train model 
     if data_loaded['training_parameters']['train_model']:
@@ -348,6 +347,7 @@ def main():
     if data_loaded['performance_parameters']['assess_performance']:
         
         assess_model_performance(model_path = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']),
+                                 file_extension = data_loaded['date']['file_extension'],
                                  date_string = data_loaded['data']['date_string'],
                                  save_predictions = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['save_predictions']),
                                  image_set = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['test_directory']),
