@@ -220,7 +220,7 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, root_dir, file_ext='.png'):
+def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, file_ext='.png'):
 
     detect_dict = {}
     iou_dict = {}
@@ -289,7 +289,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
             if save_predictions:
                 print(f'>>> Saving predictions for {img}')
                 # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
-                cv2.imwrite(os.path.join(root_dir, save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
+                cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
 
             iou_dict[file_name] = {
                 'iou': iou_list
@@ -350,7 +350,7 @@ def main():
         assess_model_performance(model_path = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']),
                                  root_dir = data_loaded['data']['root_dir'],
                                  date_string = data_loaded['data']['date_string'],
-                                 save_predictions = data_loaded['performance_parameters']['save_predictions'],
+                                 save_predictions = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['save_predictions']),
                                  image_set = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['test_directory']),
                                  class_list = data_loaded['training_parameters']['classes'],
                                  csv_outfile = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['csv_outfile']))
