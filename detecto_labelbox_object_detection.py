@@ -335,7 +335,7 @@ def main():
         download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir']), test, img_dict)
     
         # Create labels
-        create_labels(labels, data_loaded, file_extension=data_loaded['date']['file_extension'])
+        create_labels(labels, data_loaded, file_extension=data_loaded['data']['file_extension'])
 
     # Train model 
     if data_loaded['training_parameters']['train_model']:
