@@ -291,7 +291,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
                 print(f'>>> Saving predictions for {img}')
                 # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
                 cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
-                
+
             iou_dict[file_name] = {
                 'iou': iou_list
             }
@@ -319,22 +319,25 @@ def main():
     args = get_args()
     data_loaded = args.yaml
     
-    # Define API key & project ID
-    api_key = data_loaded['credentials']['api_key']
-    project_id = data_loaded['credentials']['project_id']
-    project, labels, labels_annotation = get_labelbox_data(api_key, project_id)
-    
-    # Create train/test/validation split
-    global train, val, test
-    train, val, test, img_dict = split_data(labels)
-
     # Download image data
-    download_set (data_loaded['outputs']['train_outdir'], train, img_dict)
-    download_set (data_loaded['outputs']['validation_outdir'], val, img_dict)
-    download_set (data_loaded['outputs']['test_outdir'], test, img_dict)
+    if data_loaded['outputs']['download_from_labelbox']:
+
+        # Define API key & project ID
+        api_key = data_loaded['credentials']['api_key']
+        project_id = data_loaded['credentials']['project_id']
+        project, labels, labels_annotation = get_labelbox_data(api_key, project_id)
+        
+        # Create train/test/validation split
+        global train, val, test
+        train, val, test, img_dict = split_data(labels)
+
+        # Download data from LabelBox
+        download_set (data_loaded['outputs']['train_outdir'], train, img_dict)
+        download_set (data_loaded['outputs']['validation_outdir'], val, img_dict)
+        download_set (data_loaded['outputs']['test_outdir'], test, img_dict)
     
-    # Create labels
-    create_labels(labels, data_loaded)
+        # Create labels
+        create_labels(labels, data_loaded)
 
     # Train model 
     if data_loaded['training_parameters']['train_model']:
