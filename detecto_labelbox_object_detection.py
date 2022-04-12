@@ -280,18 +280,18 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
                     color = (0, 0, 255) 
                     thickness = 6
                     cv2.rectangle(a_img, start_point, end_point, color, thickness)
-
-                    if save_predictions:
-                        print(f'>>> Saving predictions for {img}')
-                        # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
-                        cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
                     
                     iou = bb_intersection_over_union(gt, ml)
                     result_list.append(iou)
 
                 final_iou = max(result_list)
                 iou_list.append(final_iou)
-        
+
+            if save_predictions:
+                print(f'>>> Saving predictions for {img}')
+                # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
+                cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
+                
             iou_dict[file_name] = {
                 'iou': iou_list
             }
