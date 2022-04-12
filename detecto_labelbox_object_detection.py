@@ -121,13 +121,13 @@ def create_labels(data, data_loaded):
             out_name = name.replace('.png', '.xml')
 
             if name in test:
-                file_type = data_loaded['outputs']['test_outdir']
+                file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir'])
 
             elif name in train: 
-                file_type = data_loaded['outputs']['train_outdir']
+                file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir'])
 
             else:
-                file_type = data_loaded['outputs']['validation_outdir']
+                file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir'])
 
             # print(os.path.join(file_type, name))
             if os.path.isfile(os.path.join(file_type, name)):
@@ -179,9 +179,9 @@ def train_model(data_loaded):
     print('>>> Model training')
 
     # Define datasets
-    dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['outputs']['train_outdir']))
+    dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']))
     loader = core.DataLoader(dataset, batch_size=data_loaded['training_parameters']['batch_size'], shuffle=data_loaded['training_parameters']['shuffle'])
-    val_dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['outputs']['validation_outdir']))
+    val_dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir']))
     
     # Define model
     model = core.Model(data_loaded['training_parameters']['classes'])
@@ -189,14 +189,14 @@ def train_model(data_loaded):
     # Train model
     losses = model.fit(loader, val_dataset, epochs=data_loaded['training_parameters']['epochs'], learning_rate=data_loaded['training_parameters']['learning_rate'], verbose=data_loaded['training_parameters']['verbose'])
     plt.plot(losses)
-    plt.savefig(data_loaded['outputs']['plot_outfile'])
+    plt.savefig(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['plot_outfile']))
     
     print('>>> Training complete.')
 
     # Save model
     print('>>> Saving model.')
-    model.save(data_loaded['outputs']['model_outfile'])
-    print(f">>> Model saved. See {data_loaded['outputs']['model_outfile']}")
+    model.save(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']))
+    print(f">>> Model saved.")
 
 
 # --------------------------------------------------
@@ -220,8 +220,7 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, file_ext='.png'):
-
+def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, root_dir, file_ext='.png'):
 
     detect_dict = {}
     iou_dict = {}
@@ -290,7 +289,7 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
             if save_predictions:
                 print(f'>>> Saving predictions for {img}')
                 # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
-                cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
+                cv2.imwrite(os.path.join(root_dir, save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
 
             iou_dict[file_name] = {
                 'iou': iou_list
@@ -332,28 +331,29 @@ def main():
         train, val, test, img_dict = split_data(labels)
 
         # Download data from LabelBox
-        download_set (data_loaded['outputs']['train_outdir'], train, img_dict)
-        download_set (data_loaded['outputs']['validation_outdir'], val, img_dict)
-        download_set (data_loaded['outputs']['test_outdir'], test, img_dict)
+        download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']), train, img_dict)
+        download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir']), val, img_dict)
+        download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir']), test, img_dict)
     
         # Create labels
         create_labels(labels, data_loaded)
 
     # Train model 
     if data_loaded['training_parameters']['train_model']:
-        if not os.path.isfile(data_loaded['outputs']['model_outfile']):
+        if not os.path.isfile(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile'])):
             train_model(data_loaded)
         else:
             print('Previously trained model found, loading it.')
 
     if data_loaded['performance_parameters']['assess_performance']:
         
-        assess_model_performance(model_path = data_loaded['outputs']['model_outfile'],
+        assess_model_performance(model_path = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']),
+                                 root_dir = data_loaded['data']['root_dir'],
                                  date_string = data_loaded['data']['date_string'],
                                  save_predictions = data_loaded['performance_parameters']['save_predictions'],
-                                 image_set = data_loaded['performance_parameters']['test_directory'],
+                                 image_set = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['test_directory']),
                                  class_list = data_loaded['training_parameters']['classes'],
-                                 csv_outfile = data_loaded['performance_parameters']['csv_outfile'])
+                                 csv_outfile = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['csv_outfile']))
 
 
 # --------------------------------------------------
