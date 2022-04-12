@@ -283,8 +283,8 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
 
                     if save_predictions:
                         print(f'>>> Saving predictions for {img}')
-                        print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
-                        cv2.imwrite(os.path.join(save_predictions, img.replace('.png', '_prediction.png')), a_img)
+                        # print(os.path.join(save_predictions, img.replace('.png', '_prediction.png')))
+                        cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace('.png', '_prediction.png'))), a_img)
                     
                     iou = bb_intersection_over_union(gt, ml)
                     result_list.append(iou)
