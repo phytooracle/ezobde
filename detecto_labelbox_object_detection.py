@@ -348,7 +348,6 @@ def main():
     if data_loaded['performance_parameters']['assess_performance']:
         
         assess_model_performance(model_path = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']),
-                                 root_dir = data_loaded['data']['root_dir'],
                                  date_string = data_loaded['data']['date_string'],
                                  save_predictions = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['save_predictions']),
                                  image_set = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['test_directory']),
