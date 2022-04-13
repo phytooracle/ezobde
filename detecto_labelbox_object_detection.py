@@ -179,7 +179,15 @@ def train_model(data_loaded):
     print('>>> Model training')
 
     # Define datasets
-    dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']))
+    if data_loaded['training_parameters']['transforms']:
+        
+        custom_transforms = transforms.Compose(data_loaded['training_parameters']['transforms'])
+        dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']), transform=custom_transforms)
+
+    else:
+
+        dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']))
+
     loader = core.DataLoader(dataset, batch_size=data_loaded['training_parameters']['batch_size'], shuffle=data_loaded['training_parameters']['shuffle'])
     val_dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir']))
     
