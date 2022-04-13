@@ -182,6 +182,7 @@ def train_model(data_loaded):
     if data_loaded['training_parameters']['transforms']:
         print(type(data_loaded['training_parameters']['transforms']))
         custom_transforms = transforms.Compose([exec(item) for item in data_loaded['training_parameters']['transforms']])
+        print(custom_transforms)
         dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']), transform=custom_transforms)
 
     else:
