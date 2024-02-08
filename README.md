@@ -3,4 +3,7 @@ This tool was developed to easily train an object detection model (Faster R-CNN)
 
 # Run code
 To run the code, use:
+
+```
 ./detecto_labelbox_object_detection.py -y config.yaml
+```
