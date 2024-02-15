@@ -1,0 +1,39 @@
+data:
+  date_string: False
+  root_dir: sorghum_panicle
+  file_extension: .png
+
+credentials:
+  api_key: 
+  project_id: 
+
+outputs:
+  download_from_labelbox: True
+  model_outfile: object_detection_model.pth
+  plot_outfile: object_detection_loss.png
+  train_outdir: train
+  test_outdir: test
+  validation_outdir: validation
+
+training_parameters:
+  train_model: True
+  verbose: True
+  classes: [panicle]
+  shuffle: False
+  batch_size: 4
+  epochs: 10
+  learning_rate: 0.001
+  transforms: transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize(800),
+    transforms.RandomHorizontalFlip(0.5),
+    transforms.ColorJitter(saturation=0.2),
+    transforms.ToTensor(),
+    normalize_transform(),
+    ])
+
+performance_parameters:
+  assess_performance: True
+  save_predictions: predictions
+  csv_outfile: model_performance.csv
+  test_directory: test
