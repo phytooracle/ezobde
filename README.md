@@ -8,8 +8,21 @@ The YAML file requires the following fields, which can be retrieved from Labelbo
 3. classes - The class name used in Labelbox, e.g. plant, panicle
 
 # Run code
+## Python
 To run the code, use:
 
 ```
 ./detecto_labelbox_object_detection.py -y config.yaml
+```
+## Singularity
+To build the container, run:
+
+```
+singularity build ezobde.simg docker://phytooracle/ezobde:latest
+```
+
+Then, run the container using:
+
+```
+singularity run ezobde.simg -y <your YAML file here>
 ```
