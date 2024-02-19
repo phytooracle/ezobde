@@ -24,5 +24,5 @@ singularity build ezobde.simg docker://phytooracle/ezobde:latest
 Then, run the container using:
 
 ```
-singularity run ezobde.simg -y <your YAML file here>
+singularity run --nv -B $(pwd):/mnt --pwd /mnt ezobde.simg -y <your YAML file here>
 ```
