@@ -1,18 +1,19 @@
 credentials:
-  api_key: <your LabelBox API key here>
-  project_id: <your LabelBox project ID here>
+  api_key: 
+  project_id: 
 
 outputs:
-  model_outfile: lettuce/object_detection_model.pth
-  plot_outfile: lettuce/object_detection_loss.png
-  train_outdir: lettuce/train
-  test_outdir: lettuce/test
-  validation_outdir: lettuce/validation
+  model_outfile: sorghum/object_detection_model.pth
+  plot_outfile: sorghum/object_detection_loss.png
+  train_outdir: sorghum/train
+  test_outdir: sorghum/test
+  validation_outdir: sorghum/validation
+  download_from_labelbox: true
 
 training_parameters:
   train_model: True
   verbose: True
-  classes: [plant]
+  classes: [panicle]
   shuffle: False
   batch_size: 4
   epochs: 10

@@ -9,24 +9,24 @@ RUN apt-get -o Acquire::Check-Valid-Until=false -o Acquire::Check-Date=false upd
 
 RUN apt-get update
 RUN apt-get install -y wget \
-                       build-essential \
-                       software-properties-common \
-                       apt-utils \
-                       libgl1-mesa-glx \
-                       ffmpeg \
-                       libsm6 \
-                       libxext6 \
-                       libffi-dev \
-                       libbz2-dev \
-                       zlib1g-dev \
-                       libreadline-gplv2-dev \
-                       libncursesw5-dev \
-                       libssl-dev \
-                       libsqlite3-dev \
-                       tk-dev \
-                       libgdbm-dev \
-                       libc6-dev \
-                       liblzma-dev
+    build-essential \
+    software-properties-common \
+    apt-utils \
+    libgl1-mesa-glx \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libffi-dev \
+    libbz2-dev \
+    zlib1g-dev \
+    libreadline-gplv2-dev \
+    libncursesw5-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    tk-dev \
+    libgdbm-dev \
+    libc6-dev \
+    liblzma-dev
 
 RUN wget https://www.python.org/ftp/python/3.9.10/Python-3.9.10.tgz
 RUN tar -xzf Python-3.9.10.tgz

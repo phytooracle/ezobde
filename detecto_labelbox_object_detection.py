@@ -9,7 +9,7 @@ import argparse
 import os
 import sys
 import subprocess as sp
-import numpy as np 
+import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
@@ -36,19 +36,22 @@ def get_args():
     """Get command-line arguments"""
 
     parser = argparse.ArgumentParser(
-        description='EZOBDE | EaZy Object Detection',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        description="EZOBDE | EaZy Object Detection",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
-    parser.add_argument('-y',
-                        '--yaml',
-                        help='YAML file containing arguments',
-                        metavar='str',
-                        type=str,
-                        default='config.yaml')
+    parser.add_argument(
+        "-y",
+        "--yaml",
+        help="YAML file containing arguments",
+        metavar="str",
+        type=str,
+        default="config_panicle.yaml",
+    )
 
     args = parser.parse_args()
 
-    args.yaml = yaml.safe_load(open(args.yaml, 'r'))
+    args.yaml = yaml.safe_load(open(args.yaml, "r"))
 
     return args
 
@@ -56,99 +59,110 @@ def get_args():
 # --------------------------------------------------
 def get_labels(api_key, project_id):
 
-  # Enter your Labelbox API key here
-  LB_API_KEY = api_key
+    # Enter your Labelbox API key here
+    LB_API_KEY = api_key
 
-  # Create Labelbox client
-  lb = labelbox.Client(api_key=LB_API_KEY)
-  
-  # Get project by ID
-  project = lb.get_project(project_id)
-  
-  # Export image and text data as an annotation generator:
-  labels_annotation = project.label_generator()
+    # Create Labelbox client
+    lb = labelbox.Client(api_key=LB_API_KEY)
 
-  # Export labels as a json:
-  labels = project.export_labels(download = True)
+    # Get project by ID
+    project = lb.get_project(project_id)
 
-  return project, labels, labels_annotation
+    # Export image and text data as an annotation generator:
+    labels_annotation = project.label_generator()
+
+    # Export labels as a json:
+    labels = project.export_labels(download=True)
+
+    return project, labels, labels_annotation
 
 
 # --------------------------------------------------
 def download_set(work_path, set_list, img_dict):
-    
-    test_type = work_path.split('/')[-1]
+
+    test_type = work_path.split("/")[-1]
 
     if not os.path.isdir(work_path):
         os.makedirs(work_path)
-    else: 
-        print(f'{test_type.capitalize()} set already exists.')
+    else:
+        print(f"{test_type.capitalize()} set already exists.")
 
-    print('>>> Downloading data.')
-    for item in set_list: 
+    print(">>> Downloading data.")
+    for item in set_list:
 
         url = img_dict.get(item)
 
-        if not os.path.isfile(f'{os.path.join(os.getcwd(), work_path, item)}'):
+        if not os.path.isfile(f"{os.path.join(os.getcwd(), work_path, item)}"):
 
-            print(f'>>> Downloading {item}.')
-            sp.call(f'wget "{url}" -O {os.path.join(work_path, item)}', shell=True) 
-    print('>>> Download complete.')
+            print(f">>> Downloading {item}.")
+            sp.call(f'wget "{url}" -O {os.path.join(work_path, item)}', shell=True)
+    print(">>> Download complete.")
 
 
 # --------------------------------------------------
-def split_data(labels): 
+def split_data(labels):
 
-  img_list = [item['Labeled Data'] for item in labels if item['Skipped']==False]
-  name_list = [item['External ID'] for item in labels if item['Skipped']==False]
-  id_list = [item['ID'] for item in labels if item['Skipped']==False]
-  img_dict = dict(zip(name_list, img_list))
-  label_dict = dict(zip(name_list, id_list))
+    img_list = [item["Labeled Data"] for item in labels if item["Skipped"] == False]
+    name_list = [item["External ID"] for item in labels if item["Skipped"] == False]
+    id_list = [item["ID"] for item in labels if item["Skipped"] == False]
+    img_dict = dict(zip(name_list, img_list))
+    label_dict = dict(zip(name_list, id_list))
 
-  train, val, test = np.split(name_list, [int(.8*len(name_list)), int(.9*len(name_list))])
-  return train, val, test, img_dict
+    train, val, test = np.split(
+        name_list, [int(0.8 * len(name_list)), int(0.9 * len(name_list))]
+    )
+    return train, val, test, img_dict
 
 
 # --------------------------------------------------
 def create_labels(data, data_loaded, file_extension):
-  
+
     args = get_args()
-    print('>>> Creating XML label files.')
+    print(">>> Creating XML label files.")
     for i in range(len(data)):
         try:
-            file_name = data[i]['External ID'].replace(file_extension, '.txt')
-            name = data[i]['External ID']
-            out_name = name.replace(file_extension, '.xml')
+            file_name = data[i]["External ID"].replace(file_extension, ".txt")
+            name = data[i]["External ID"]
+            out_name = name.replace(file_extension, ".xml")
 
             if name in test:
-                file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir'])
+                file_type = os.path.join(
+                    data_loaded["data"]["root_dir"],
+                    data_loaded["outputs"]["test_outdir"],
+                )
 
-            elif name in train: 
-                file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir'])
+            elif name in train:
+                file_type = os.path.join(
+                    data_loaded["data"]["root_dir"],
+                    data_loaded["outputs"]["train_outdir"],
+                )
 
             else:
-                file_type = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir'])
+                file_type = os.path.join(
+                    data_loaded["data"]["root_dir"],
+                    data_loaded["outputs"]["validation_outdir"],
+                )
 
             # print(os.path.join(file_type, name))
             if os.path.isfile(os.path.join(file_type, name)):
                 if not os.path.isfile(os.path.join(file_type, out_name)):
-                    print(f'>>> Creating {out_name}.')
+                    print(f">>> Creating {out_name}.")
                     img = cv2.imread(os.path.join(file_type, name))
 
                     h, w, _ = img.shape
                     label_list, x, y = [], [], []
-                    for a in range(len(data[i]['Label']['objects'])):
+                    for a in range(len(data[i]["Label"]["objects"])):
 
-                        points = data[i]['Label']['objects'][a]['bbox']
-                        label = data[i]['Label']['objects'][a]['value']
+                        points = data[i]["Label"]["objects"][a]["bbox"]
+                        label = data[i]["Label"]["objects"][a]["value"]
 
                         label_list.append(label)
-                        x.append([points['left'], (points['left'] + points['width'])])
-                        y.append([points['top'], (points['top'] + points['height'])])
+                        x.append([points["left"], (points["left"] + points["width"])])
+                        y.append([points["top"], (points["top"] + points["height"])])
 
                     final = list(zip(label_list, x, y))
                     if not final:
-                        print('>>> Empty')
+                        print(">>> Empty")
 
                     name = os.path.join(file_type, name)
                     writer = Writer(name, w, h)
@@ -158,11 +172,11 @@ def create_labels(data, data_loaded, file_extension):
                         min_y, max_y = item[2]
                         writer.addObject(item[0], min_x, min_y, max_x, max_y)
                         writer.save(os.path.join(file_type, out_name))
-        
+
         except:
             pass
 
-    print('>>> Done creating labels.')
+    print(">>> Done creating labels.")
 
 
 # --------------------------------------------------
@@ -175,34 +189,71 @@ def get_labelbox_data(api_key, project_id):
 
 # --------------------------------------------------
 def train_model(data_loaded):
-    
-    print('>>> Model training')
+
+    print(">>> Model training")
 
     # Define datasets
-    if data_loaded['training_parameters']['transforms']:
+    if data_loaded["training_parameters"]["transforms"]:
 
-        dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']), transform=exec(data_loaded['training_parameters']['transforms']))
+        dataset = core.Dataset(
+            os.path.join(
+                os.getcwd(),
+                data_loaded["data"]["root_dir"],
+                data_loaded["outputs"]["train_outdir"],
+            ),
+            transform=exec(data_loaded["training_parameters"]["transforms"]),
+        )
 
     else:
 
-        dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']))
+        dataset = core.Dataset(
+            os.path.join(
+                os.getcwd(),
+                data_loaded["data"]["root_dir"],
+                data_loaded["outputs"]["train_outdir"],
+            )
+        )
 
-    loader = core.DataLoader(dataset, batch_size=data_loaded['training_parameters']['batch_size'], shuffle=data_loaded['training_parameters']['shuffle'])
-    val_dataset = core.Dataset(os.path.join(os.getcwd(), data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir']))
-    
+    loader = core.DataLoader(
+        dataset,
+        batch_size=data_loaded["training_parameters"]["batch_size"],
+        shuffle=data_loaded["training_parameters"]["shuffle"],
+    )
+    val_dataset = core.Dataset(
+        os.path.join(
+            os.getcwd(),
+            data_loaded["data"]["root_dir"],
+            data_loaded["outputs"]["validation_outdir"],
+        )
+    )
+
     # Define model
-    model = core.Model(data_loaded['training_parameters']['classes'])
+    model = core.Model(data_loaded["training_parameters"]["classes"])
 
     # Train model
-    losses = model.fit(loader, val_dataset, epochs=data_loaded['training_parameters']['epochs'], learning_rate=data_loaded['training_parameters']['learning_rate'], verbose=data_loaded['training_parameters']['verbose'])
+    losses = model.fit(
+        loader,
+        val_dataset,
+        epochs=data_loaded["training_parameters"]["epochs"],
+        learning_rate=data_loaded["training_parameters"]["learning_rate"],
+        verbose=data_loaded["training_parameters"]["verbose"],
+    )
     plt.plot(losses)
-    plt.savefig(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['plot_outfile']))
-    
-    print('>>> Training complete.')
+    plt.savefig(
+        os.path.join(
+            data_loaded["data"]["root_dir"], data_loaded["outputs"]["plot_outfile"]
+        )
+    )
+
+    print(">>> Training complete.")
 
     # Save model
-    print('>>> Saving model.')
-    model.save(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']))
+    print(">>> Saving model.")
+    model.save(
+        os.path.join(
+            data_loaded["data"]["root_dir"], data_loaded["outputs"]["model_outfile"]
+        )
+    )
     print(f">>> Model saved.")
 
 
@@ -227,7 +278,15 @@ def bb_intersection_over_union(boxA, boxB):
     return iou
 
 
-def assess_model_performance(model_path, image_set, class_list, csv_outfile, date_string, save_predictions, file_extension):
+def assess_model_performance(
+    model_path,
+    image_set,
+    class_list,
+    csv_outfile,
+    date_string,
+    save_predictions,
+    file_extension,
+):
 
     detect_dict = {}
     iou_dict = {}
@@ -240,41 +299,54 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
         if not os.path.isdir(save_predictions):
             os.makedirs(save_predictions)
 
-    for img in glob.glob(os.path.join(image_set, ''.join(['*', file_extension]))):
-        
+    for img in glob.glob(os.path.join(image_set, "".join(["*", file_extension]))):
+
         try:
             cnt = 0
             image = utils.read_image(img)
             predictions = model.predict(image)
-            labels, boxes, scores = predictions
+
+            labels, boxes, scores = [
+                (label, box, score)
+                for label, box, score in zip(
+                    predictions[0], predictions[1], predictions[2]
+                )
+                if score >= 0.5
+            ]
+
             a_img = cv2.imread(img)
             a_img = cv2.cvtColor(a_img, cv2.COLOR_BGR2RGB)
             copy = a_img.copy()
 
-            xml = img.replace(file_extension, '.xml')
+            xml = img.replace(file_extension, ".xml")
             mydoc = minidom.parse(xml)
-            items = mydoc.getElementsByTagName('object')
+            items = mydoc.getElementsByTagName("object")
             tree = ET.parse(xml)
             root = tree.getroot()
-            gt = len([roi for roi in root.iter('object')])
+            gt = len([roi for roi in root.iter("object")])
             gt_num.append(gt)
             img_list.append(img)
 
             iou_list = []
             for i, box in enumerate(boxes):
 
-                min_x, min_y, max_x, max_y = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+                min_x, min_y, max_x, max_y = (
+                    int(box[0]),
+                    int(box[1]),
+                    int(box[2]),
+                    int(box[3]),
+                )
                 ml = [min_y, min_x, max_y, max_x]
                 start_point = (min_x, max_y)
                 end_point = (max_x, min_y)
-                color = (255, 0, 0) 
+                color = (255, 0, 0)
                 thickness = 6
                 cv2.rectangle(a_img, start_point, end_point, color, thickness)
 
                 result_list = []
-                for roi in root.iter('object'):
-                    file_name = root.find('filename').text
-                    ymin, xmin, ymax, xmax = None, None, None, None 
+                for roi in root.iter("object"):
+                    file_name = root.find("filename").text
+                    ymin, xmin, ymax, xmax = None, None, None, None
 
                     ymin = int(roi.find("bndbox/ymin").text)
                     xmin = int(roi.find("bndbox/xmin").text)
@@ -283,10 +355,10 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
                     gt = [ymin, xmin, ymax, xmax]
                     start_point = (xmin, ymax)
                     end_point = (xmax, ymin)
-                    color = (0, 0, 255) 
+                    color = (0, 0, 255)
                     thickness = 6
                     cv2.rectangle(a_img, start_point, end_point, color, thickness)
-                    
+
                     iou = bb_intersection_over_union(gt, ml)
                     result_list.append(iou)
 
@@ -294,28 +366,35 @@ def assess_model_performance(model_path, image_set, class_list, csv_outfile, dat
                 iou_list.append(final_iou)
 
             if save_predictions:
-                print(f'>>> Saving predictions for {img}')
-                cv2.imwrite(os.path.join(save_predictions, os.path.basename(img.replace(file_extension, f'_prediction{file_extension}'))), a_img)
+                print(f">>> Saving predictions for {img}")
+                cv2.imwrite(
+                    os.path.join(
+                        save_predictions,
+                        os.path.basename(
+                            img.replace(file_extension, f"_prediction{file_extension}")
+                        ),
+                    ),
+                    a_img,
+                )
 
-            iou_dict[file_name] = {
-                'iou': iou_list
-            }
-            
+            iou_dict[file_name] = {"iou": iou_list}
+
         except:
             pass
 
-    df = pd.DataFrame.from_dict(iou_dict, orient='index').explode('iou')
-    df['iou'] = df['iou'].astype(float)
+    df = pd.DataFrame.from_dict(iou_dict, orient="index").explode("iou")
+    df["iou"] = df["iou"].astype(float)
     # df = df.groupby(by=df.index).mean()
     df = df.reset_index()
 
     if date_string:
-        df['date'] = df['index'].str.split('_', expand=True)[0]
-        df = df.sort_values('date')
+        df["date"] = df["index"].str.split("_", expand=True)[0]
+        df = df.sort_values("date")
 
     df.to_csv(csv_outfile, index=False)
 
     return df
+
 
 # --------------------------------------------------
 def main():
@@ -323,45 +402,84 @@ def main():
 
     args = get_args()
     data_loaded = args.yaml
-    
+
+    print(data_loaded["outputs"])
     # Download image data
-    if data_loaded['outputs']['download_from_labelbox']:
+    if data_loaded["outputs"]["download_from_labelbox"]:
 
         # Define API key & project ID
-        api_key = data_loaded['credentials']['api_key']
-        project_id = data_loaded['credentials']['project_id']
+        api_key = data_loaded["credentials"]["api_key"]
+        project_id = data_loaded["credentials"]["project_id"]
         project, labels, labels_annotation = get_labelbox_data(api_key, project_id)
-        
+
         # Create train/test/validation split
         global train, val, test
         train, val, test, img_dict = split_data(labels)
 
         # Download data from LabelBox
-        download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['train_outdir']), train, img_dict)
-        download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['validation_outdir']), val, img_dict)
-        download_set(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['test_outdir']), test, img_dict)
-    
-        # Create labels
-        create_labels(labels, data_loaded, file_extension=data_loaded['data']['file_extension'])
+        download_set(
+            os.path.join(
+                data_loaded["data"]["root_dir"], data_loaded["outputs"]["train_outdir"]
+            ),
+            train,
+            img_dict,
+        )
+        download_set(
+            os.path.join(
+                data_loaded["data"]["root_dir"],
+                data_loaded["outputs"]["validation_outdir"],
+            ),
+            val,
+            img_dict,
+        )
+        download_set(
+            os.path.join(
+                data_loaded["data"]["root_dir"], data_loaded["outputs"]["test_outdir"]
+            ),
+            test,
+            img_dict,
+        )
 
-    # Train model 
-    if data_loaded['training_parameters']['train_model']:
-        if not os.path.isfile(os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile'])):
+        # Create labels
+        create_labels(
+            labels, data_loaded, file_extension=data_loaded["data"]["file_extension"]
+        )
+
+    # Train model
+    if data_loaded["training_parameters"]["train_model"]:
+        if not os.path.isfile(
+            os.path.join(
+                data_loaded["data"]["root_dir"], data_loaded["outputs"]["model_outfile"]
+            )
+        ):
             train_model(data_loaded)
         else:
-            print('Previously trained model found, loading it.')
+            print("Previously trained model found, loading it.")
 
-    if data_loaded['performance_parameters']['assess_performance']:
-        
-        assess_model_performance(model_path = os.path.join(data_loaded['data']['root_dir'], data_loaded['outputs']['model_outfile']),
-                                 file_extension = data_loaded['data']['file_extension'],
-                                 date_string = data_loaded['data']['date_string'],
-                                 save_predictions = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['save_predictions']),
-                                 image_set = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['test_directory']),
-                                 class_list = data_loaded['training_parameters']['classes'],
-                                 csv_outfile = os.path.join(data_loaded['data']['root_dir'], data_loaded['performance_parameters']['csv_outfile']))
+    if data_loaded["performance_parameters"]["assess_performance"]:
+
+        assess_model_performance(
+            model_path=os.path.join(
+                data_loaded["data"]["root_dir"], data_loaded["outputs"]["model_outfile"]
+            ),
+            file_extension=data_loaded["data"]["file_extension"],
+            date_string=data_loaded["data"]["date_string"],
+            save_predictions=os.path.join(
+                data_loaded["data"]["root_dir"],
+                data_loaded["performance_parameters"]["save_predictions"],
+            ),
+            image_set=os.path.join(
+                data_loaded["data"]["root_dir"],
+                data_loaded["performance_parameters"]["test_directory"],
+            ),
+            class_list=data_loaded["training_parameters"]["classes"],
+            csv_outfile=os.path.join(
+                data_loaded["data"]["root_dir"],
+                data_loaded["performance_parameters"]["csv_outfile"],
+            ),
+        )
 
 
 # --------------------------------------------------
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
