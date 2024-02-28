@@ -385,8 +385,8 @@ def assess_model_performance(
 
             iou_dict[file_name] = {"iou": iou_list}
 
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
     df = pd.DataFrame.from_dict(iou_dict, orient="index").explode("iou")
     df["iou"] = df["iou"].astype(float)
