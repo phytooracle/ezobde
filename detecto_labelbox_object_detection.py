@@ -315,7 +315,7 @@ def assess_model_performance(
             # print(scores)
 
             for i in range(len(scores)):
-                if scores[i] >= np.median(scores):
+                if scores[i] >= np.percantlie(scores, 35):
                     new_labels.append(labels[i])
                     new_boxes.append(boxes[i])
                     new_scores.append(scores[i])
