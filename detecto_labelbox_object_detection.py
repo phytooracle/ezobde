@@ -306,16 +306,31 @@ def assess_model_performance(
             image = utils.read_image(img)
             predictions = model.predict(image)
             labels, boxes, scores = predictions
+
+            new_labels = []
+            new_boxes = []
+            new_scores = []
             # print(labels)
             # print(boxes)
             # print(scores)
-            labels, boxes, scores = [
-                (label, box, score)
-                for label, box, score in zip(
-                    predictions[0], predictions[1], predictions[2]
-                )
-                if score >= np.median(scores)
-            ]
+
+            for i in range(len(scores)):
+                if scores[i] >= np.median(scores):
+                    new_labels.append(labels[i])
+                    new_boxes.append(boxes[i])
+                    new_scores.append(scores[i])
+
+            labels = new_labels
+            boxes = new_boxes
+            scores = new_scores
+
+            # labels, boxes, scores = [
+            #     (label, box, score)
+            #     for label, box, score in zip(
+            #         predictions[0], predictions[1], predictions[2]
+            #     )
+            #     if score >= np.median(scores)
+            # ]
             # print(labels)
             # print(boxes)
             # print(scores)
@@ -387,6 +402,8 @@ def assess_model_performance(
 
         except Exception as e:
             print(e)
+            print("Detection Failed")
+            continue
 
     df = pd.DataFrame.from_dict(iou_dict, orient="index").explode("iou")
     df["iou"] = df["iou"].astype(float)
