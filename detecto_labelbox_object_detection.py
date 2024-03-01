@@ -306,19 +306,19 @@ def assess_model_performance(
             image = utils.read_image(img)
             predictions = model.predict(image)
             labels, boxes, scores = predictions
-            print(labels)
-            print(boxes)
-            print(scores)
+            # print(labels)
+            # print(boxes)
+            # print(scores)
             labels, boxes, scores = [
                 (label, box, score)
                 for label, box, score in zip(
                     predictions[0], predictions[1], predictions[2]
                 )
-                if score >= 0.5
+                if score >= np.median(score)
             ]
-            print(labels)
-            print(boxes)
-            print(scores)
+            # print(labels)
+            # print(boxes)
+            # print(scores)
 
             a_img = cv2.imread(img)
             a_img = cv2.cvtColor(a_img, cv2.COLOR_BGR2RGB)
