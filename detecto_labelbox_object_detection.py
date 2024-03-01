@@ -314,7 +314,7 @@ def assess_model_performance(
                 for label, box, score in zip(
                     predictions[0], predictions[1], predictions[2]
                 )
-                if score >= np.median(score)
+                if score >= np.median(scores)
             ]
             # print(labels)
             # print(boxes)
