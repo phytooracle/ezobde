@@ -34,6 +34,7 @@ training_parameters:
 
 performance_parameters:
   assess_performance: True
+  threshold_percentile: 45
   save_predictions: predictions
   csv_outfile: model_performance.csv
   test_directory: test

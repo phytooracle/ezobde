@@ -286,6 +286,7 @@ def assess_model_performance(
     date_string,
     save_predictions,
     file_extension,
+    threshold,
 ):
 
     detect_dict = {}
@@ -315,7 +316,7 @@ def assess_model_performance(
             # print(scores)
 
             for i in range(len(scores)):
-                if scores[i] >= np.percantlie(scores, 35):
+                if scores[i] >= np.percentile(scores, threshold):
                     new_labels.append(labels[i])
                     new_boxes.append(boxes[i])
                     new_scores.append(scores[i])
@@ -500,6 +501,7 @@ def main():
                 data_loaded["data"]["root_dir"],
                 data_loaded["performance_parameters"]["csv_outfile"],
             ),
+            threshold=data_loaded["performance_parameters"]["threshold_percentile"],
         )
 
 
