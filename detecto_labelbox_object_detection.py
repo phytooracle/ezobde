@@ -405,17 +405,7 @@ def assess_model_performance(
             print("Detection Failed")
             continue
 
-    df = pd.DataFrame.from_dict(
-        {
-            "index": list(iou_dict.keys()),
-            "iou": [iou for ious in iou_dict.values() for iou in ious["iou"]],
-            "prediction_score": [
-                score
-                for scores in iou_dict.values()
-                for score in scores["prediction_score"]
-            ],
-        }
-    )
+    df = pd.DataFrame.from_dict(iou_dict).explode(["iou", "prediction_score"])
     df["iou"] = df["iou"].astype(float)
     df["prediction_score"] = df["prediction_score"].astype(float)
     # df = df.groupby(by=df.index).mean()
