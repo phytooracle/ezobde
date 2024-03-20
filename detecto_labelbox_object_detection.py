@@ -404,7 +404,7 @@ def assess_model_performance(
             print(e)
             print("Detection Failed")
             continue
-
+    print(iou_dict)
     df = pd.DataFrame.from_dict(iou_dict).explode(["iou", "prediction_score"])
     df["iou"] = df["iou"].astype(float)
     df["prediction_score"] = df["prediction_score"].astype(float)
