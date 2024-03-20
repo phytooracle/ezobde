@@ -311,9 +311,6 @@ def assess_model_performance(
             new_labels = []
             new_boxes = []
             new_scores = []
-            # print(labels)
-            # print(boxes)
-            # print(scores)
 
             for i in range(len(scores)):
                 if scores[i] >= np.percentile(scores, threshold):
@@ -350,6 +347,7 @@ def assess_model_performance(
             img_list.append(img)
 
             iou_list = []
+            score_list = []
             for i, box in enumerate(boxes):
 
                 min_x, min_y, max_x, max_y = (
@@ -385,6 +383,7 @@ def assess_model_performance(
                     result_list.append(iou)
 
                 final_iou = max(result_list)
+                score_list.append(scores[i])
                 iou_list.append(final_iou)
 
             if save_predictions:
@@ -399,15 +398,26 @@ def assess_model_performance(
                     a_img,
                 )
 
-            iou_dict[file_name] = {"iou": iou_list}
+            iou_dict[file_name] = {"iou": iou_list, "prediction_score": score_list}
 
         except Exception as e:
             print(e)
             print("Detection Failed")
             continue
 
-    df = pd.DataFrame.from_dict(iou_dict, orient="index").explode("iou")
+    df = pd.DataFrame.from_dict(
+        {
+            "index": list(iou_dict.keys()),
+            "iou": [iou for ious in iou_dict.values() for iou in ious["iou"]],
+            "prediction_score": [
+                score
+                for scores in iou_dict.values()
+                for score in scores["prediction_score"]
+            ],
+        }
+    )
     df["iou"] = df["iou"].astype(float)
+    df["prediction_score"] = df["prediction_score"].astype(float)
     # df = df.groupby(by=df.index).mean()
     df = df.reset_index()
 
