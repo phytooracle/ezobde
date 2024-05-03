@@ -322,17 +322,6 @@ def assess_model_performance(
             boxes = new_boxes
             scores = new_scores
 
-            # labels, boxes, scores = [
-            #     (label, box, score)
-            #     for label, box, score in zip(
-            #         predictions[0], predictions[1], predictions[2]
-            #     )
-            #     if score >= np.median(scores)
-            # ]
-            # print(labels)
-            # print(boxes)
-            # print(scores)
-
             a_img = cv2.imread(img)
             a_img = cv2.cvtColor(a_img, cv2.COLOR_BGR2RGB)
             copy = a_img.copy()
