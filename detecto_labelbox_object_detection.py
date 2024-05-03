@@ -312,6 +312,7 @@ def assess_model_performance(
             new_boxes = []
             new_scores = []
 
+            #for filtering matches
             for i in range(len(scores)):
                 if scores[i] >= np.percentile(scores, threshold):
                     new_labels.append(labels[i])
